@@ -1,4 +1,0 @@
-docs(deploy): 补充自定义域名 hi-lanmili.com 的接入与日常更新流程
-
-- README 新增「日常更新」与「自定义域名」两节，含阿里云解析记录表与切换顺序
-- 新增 public/CNAME 作为兜底保险
