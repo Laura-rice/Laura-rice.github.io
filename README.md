@@ -26,7 +26,9 @@ npm run dev
 流水线要点：
 
 - 构建前把环境变量 `VITE_DIFY_CHATBOT_TOKEN` 从仓库 Secret 注入，因此线上 AI 助手气泡可用；该值需在 **Settings → Secrets and variables → Actions** 中维护。
-- 构建后用 `index.html` 生成 `404.html`。GitHub Pages 对未知路径返回 404，靠这个回退文件 React Router 的子路由（如 `/about`）才能直接访问和刷新。
+- 构建命令是 `npm run build:pages`，等于 `vite build` 之后再执行 `scripts/generate-static-routes.mjs`。
+- 该脚本会为 `/about`、`/projects/<id>`、`/writing/<id>` 等每个已知路由生成 `dist/<route>/index.html`。GitHub Pages 对文件系统中不存在的路径一律返回 404，而单页应用直接访问子路由时页面虽然能渲染、状态码却是 404，搜索引擎不会收录；生成真实目录后子页面返回 **200**，同时 `404.html` 继续兜底未列出的路径。
+- 新增项目或文章时，只要写进 `src/data/siteContent.js` 的 `PROJECTS` / `WRITINGS`，对应详情页路由（如 `/projects/<新 id>`）会在下次构建时自动生成，无需改动其他文件。
 - `public/.nojekyll` 阻止 Pages 用 Jekyll 处理构建产物。
 
 ### Vercel（可选）

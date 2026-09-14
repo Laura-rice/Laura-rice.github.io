@@ -34,15 +34,14 @@ jobs:
         run: npm ci
 
       - name: Build
-        run: npm run build
+        run: npm run build:pages
         env:
           # Dify 聊天气泡凭据（仓库 Settings → Secrets 中配置）
           VITE_DIFY_CHATBOT_TOKEN: ${{ secrets.VITE_DIFY_CHATBOT_TOKEN }}
           VITE_DIFY_BASE_URL: https://udify.app
 
-      # GitHub Pages 对未知路径返回 404，SPA 需要 404.html 兜底才能直接访问 /about 等子路由
-      - name: Add SPA fallback (404.html)
-        run: cp dist/index.html dist/404.html
+      # 说明：build:pages 内部会为 /about、/projects/<id> 等路由生成
+      # <route>/index.html，并生成 404.html 兜底，详见 scripts/generate-static-routes.mjs
 
       - name: Setup Pages
         uses: actions/configure-pages@v6
