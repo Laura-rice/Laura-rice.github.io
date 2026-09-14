@@ -28,8 +28,10 @@ npm run dev
 
 - 构建前把环境变量 `VITE_DIFY_CHATBOT_TOKEN` 从仓库 Secret 注入，因此线上 AI 助手气泡可用；该值需在 **Settings → Secrets and variables → Actions** 中维护。
 - 构建命令是 `npm run build:pages`，等于 `vite build` 之后再执行 `scripts/generate-static-routes.mjs`。
-- 该脚本会为 `/about`、`/projects/<id>`、`/writing/<id>` 等每个已知路由生成 `dist/<route>/index.html`。GitHub Pages 对文件系统中不存在的路径一律返回 404，而单页应用直接访问子路由时页面虽然能渲染、状态码却是 404，搜索引擎不会收录；生成真实目录后子页面返回 **200**，同时 `404.html` 继续兜底未列出的路径。
-- 新增项目或文章时，只要写进 `src/data/siteContent.js` 的 `PROJECTS` / `WRITINGS`，对应详情页路由（如 `/projects/<新 id>`）会在下次构建时自动生成，无需改动其他文件。
+- 该脚本会为 `/about`、`/projects/<id>`、`/writing/<id>` 等每个已知路由生成 `dist/<route>/index.html`，并在构建期把该页专属的 `<title>`、`description`、`canonical`、`og:url` 直接写进 HTML（搜索引擎爬虫不一定执行 JS，写死在 HTML 里的元信息才能被稳定抓到）。GitHub Pages 对文件系统中不存在的路径一律返回 404，而单页应用直接访问子路由时页面虽然能渲染、状态码却是 404，搜索引擎不会收录；生成真实目录后子页面返回 **200**，同时 `404.html`（已标 `noindex`）继续兜底未列出的路径。
+- 同时生成 `robots.txt` 与 `sitemap.xml`，供搜索引擎站长平台提交。
+- 新增项目或文章时，只要写进 `src/data/siteContent.js` 的 `PROJECTS` / `WRITINGS`，对应详情页路由、标题、描述以及 sitemap 条目都会在下次构建时自动生成，无需改动其他文件。
+- `VITE_SITE_URL`（站点正式地址）在仓库 **Settings → Secrets and variables → Actions → Variables** 中维护。为空时脚本会跳过 `canonical` / `og:url` / `sitemap.xml`，避免在域名生效前指向死地址；绑定域名后把它设为 `https://hi-lanmili.com` 并重新部署一次即可。
 - `public/.nojekyll` 阻止 Pages 用 Jekyll 处理构建产物。
 
 ### 日常更新（最常用）
@@ -78,7 +80,24 @@ gh api repos/Laura-rice/Laura-rice.github.io/pages --jq '{cname,https_enforced,s
 
 `cname` 显示 `hi-lanmili.com` 即为成功，随后在 **Settings → Pages** 勾选 **Enforce HTTPS**（证书签发可能需要几分钟到几小时，未就绪时该选项不可点）。
 
+绑定完成后再设置站点地址变量并触发一次重新部署，让 `canonical` / `sitemap.xml` 指向正式域名：
+
+```powershell
+gh variable set VITE_SITE_URL --body "https://hi-lanmili.com"
+gh workflow run "Deploy to GitHub Pages"
+```
+
 `public/CNAME` 内容与本域名保持一致，作为兜底保险；但对当前的自定义 Actions 工作流发布方式，GitHub 官方说明是**该文件会被忽略、也不需要**，真正生效的是仓库 Settings 中的配置。
+
+### 让搜索引擎收录
+
+域名能打开只代表"输入网址可访问"；要在搜索结果里出现，还需要主动向搜索引擎提交站点，新站从提交到被收录通常需要几天到几周。
+
+1. **Google**：<https://search.google.com/search-console> → 添加资源 → 选「网域」类型输入 `hi-lanmili.com` → 按提示在阿里云云解析加一条 `TXT` 记录完成所有权验证 → 左侧「站点地图」提交 `https://hi-lanmili.com/sitemap.xml`。
+2. **百度**：<https://ziyuan.baidu.com> → 用户中心 → 站点管理 → 添加 `https://hi-lanmili.com` → 选 CNAME 或文件验证 → 「普通收录」提交 sitemap 地址。
+3. **Bing**：<https://www.bing.com/webmasters> 支持直接从 Google Search Console 一键导入。
+
+构建产物已经准备好了搜索引擎需要的全部内容：每页独立的 `<title>` 与 `description`、`canonical`、`robots.txt` 和 `sitemap.xml`。
 
 ### Vercel（可选）
 

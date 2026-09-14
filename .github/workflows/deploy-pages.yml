@@ -39,9 +39,14 @@ jobs:
           # Dify 聊天气泡凭据（仓库 Settings → Secrets 中配置）
           VITE_DIFY_CHATBOT_TOKEN: ${{ secrets.VITE_DIFY_CHATBOT_TOKEN }}
           VITE_DIFY_BASE_URL: https://udify.app
+          # 站点正式地址，用于 canonical / og:url / sitemap.xml
+          # 在仓库 Settings → Secrets and variables → Actions → Variables 中维护；
+          # 为空时构建脚本会跳过这些标签，避免在域名生效前指向死地址
+          VITE_SITE_URL: ${{ vars.VITE_SITE_URL }}
 
-      # 说明：build:pages 内部会为 /about、/projects/<id> 等路由生成
-      # <route>/index.html，并生成 404.html 兜底，详见 scripts/generate-static-routes.mjs
+      # 说明：build:pages 内部会为 /about、/projects/<id> 等路由生成带独立
+      # <title>/description/canonical 的 <route>/index.html，并生成 404.html、
+      # robots.txt、sitemap.xml，详见 scripts/generate-static-routes.mjs
 
       - name: Setup Pages
         uses: actions/configure-pages@v6

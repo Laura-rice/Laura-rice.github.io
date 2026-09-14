@@ -7,7 +7,11 @@ describe('WonderExperience', () => {
     render(<WonderExperience />);
 
     expect(screen.getByText('REVERIE')).toBeInTheDocument();
-    expect(screen.getByRole('heading', { name: 'FORGE BEYOND THE REAL' })).toBeInTheDocument();
+    // 第二幕标题被拆成逐词入场的 <span>，可访问名称会因空白折叠而不稳定，
+    // 因此改为比对拼接后的文本，避免与动画结构耦合。
+    const sceneTwoHeading = document.querySelector('.wonder-scene--two h2');
+    expect(sceneTwoHeading).toBeInTheDocument();
+    expect(sceneTwoHeading.textContent.replace(/\s+/g, ' ').trim()).toBe('FORGE BEYOND THE REAL');
     expect(screen.getByText('Hidden Realms')).toBeInTheDocument();
     expect(document.querySelector('.wonder-cave')).toBeInTheDocument();
     expect(document.querySelector('.wonder-cave__rock')).toBeInTheDocument();
