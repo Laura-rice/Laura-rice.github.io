@@ -1,0 +1,9 @@
+import { SEO } from '../app/seo';
+import { PageIntro } from '../components/ui/PageIntro';
+import { SectionHeading } from '../components/ui/SectionHeading';
+import { EXPERIENCE, SITE, STRENGTHS } from '../data/siteContent';
+import { useDocumentMeta } from '../hooks/useDocumentMeta';
+import { useReveal } from '../hooks/useReveal';
+import { WonderExperience } from '../components/wonder/WonderExperience';
+
+export function AboutPage() { useDocumentMeta(...SEO.about); useReveal(); return <main className="page-main"><WonderExperience /><PageIntro index="02 / PROFILE" title="关于我" description="数据科学专业学生，正在把对数据、AI 和视觉表达的兴趣汇聚到 AI 训练方向。" /><section className="about-story section"><SectionHeading eyebrow="PROFILE" title="专业不是把自己说得很满，而是知道每个判断需要什么证据。" /><div className="portrait-placeholder"><span>待替换真实头像</span></div><div className="prose"><p>我目前处在学习和能力积累阶段。比起罗列“精通”，我更愿意展示问题怎样被发现、规则怎样被建立、结果怎样被验证。</p><p>视觉设计训练让我重视信息结构与表达；数据科学背景让我习惯从数据和证据出发。这两部分共同服务于我的核心方向：AI 训练。</p><dl><dt>学校 / 年级</dt><dd>待补充真实信息</dd><dt>专业</dt><dd>数据科学与大数据技术</dd><dt>求职方向</dt><dd>AI 训练师实习</dd></dl></div></section><section className="section"><SectionHeading eyebrow="TIMELINE" title="能力成长路径" /><div className="timeline">{EXPERIENCE.map((item) => <article className="reveal" key={item.title}><time>{item.year}</time><h3>{item.title}</h3><p>{item.detail}</p></article>)}</div></section><section className="section"><SectionHeading eyebrow="PRINCIPLES" title="技能与证据" /><div className="strength-grid">{STRENGTHS.map(([index,title,text]) => <article className="strength-card reveal" key={index}><span>{index}</span><h3>{title}</h3><p>{text}</p></article>)}</div></section><section className="about-contact section"><SectionHeading eyebrow="CONTACT" title="简历与联系方式"/><p>PDF 简历将在姓名、教育经历和项目材料核实后开放下载，避免发布不完整信息。</p><p className="prose">{SITE.email}</p></section></main>; }

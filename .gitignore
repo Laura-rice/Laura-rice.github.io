@@ -1,0 +1,16 @@
+node_modules/
+dist/
+.vercel/
+coverage/
+*.local
+*.log
+
+.vercel
+
+# 本地手动备份文件（保留在本地，不入库）
+*.bak
+*.bak2
+*.bak3
+
+# 本地草稿与临时产物
+output/

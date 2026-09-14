@@ -1,0 +1,64 @@
+name: Deploy to GitHub Pages
+
+# 推送到 main 分支即自动构建并发布预览站
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# 需要 pages:write 与 id-token:write 才能通过 OIDC 发布
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# 同一时间只跑一个部署，新的推送会取消进行中的旧部署
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+        env:
+          # Dify 聊天气泡凭据（仓库 Settings → Secrets 中配置）
+          VITE_DIFY_CHATBOT_TOKEN: ${{ secrets.VITE_DIFY_CHATBOT_TOKEN }}
+          VITE_DIFY_BASE_URL: https://udify.app
+
+      # GitHub Pages 对未知路径返回 404，SPA 需要 404.html 兜底才能直接访问 /about 等子路由
+      - name: Add SPA fallback (404.html)
+        run: cp dist/index.html dist/404.html
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
