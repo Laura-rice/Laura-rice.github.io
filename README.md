@@ -17,7 +17,8 @@ npm run dev
 
 ### GitHub Pages（当前使用）
 
-- 线上预览：<https://laura-rice.github.io/>
+- 正式地址：<https://hi-lanmili.com/>
+- 默认地址：<https://laura-rice.github.io/>（绑定自定义域名后会自动 301 跳转到正式地址）
 - 仓库地址：<https://github.com/Laura-rice/Laura-rice.github.io>
 - 部署方式：推送到 `main` 分支即自动构建并发布，无需手动操作
 - 手动触发：仓库 **Actions** → `Deploy to GitHub Pages` → **Run workflow**
@@ -30,6 +31,54 @@ npm run dev
 - 该脚本会为 `/about`、`/projects/<id>`、`/writing/<id>` 等每个已知路由生成 `dist/<route>/index.html`。GitHub Pages 对文件系统中不存在的路径一律返回 404，而单页应用直接访问子路由时页面虽然能渲染、状态码却是 404，搜索引擎不会收录；生成真实目录后子页面返回 **200**，同时 `404.html` 继续兜底未列出的路径。
 - 新增项目或文章时，只要写进 `src/data/siteContent.js` 的 `PROJECTS` / `WRITINGS`，对应详情页路由（如 `/projects/<新 id>`）会在下次构建时自动生成，无需改动其他文件。
 - `public/.nojekyll` 阻止 Pages 用 Jekyll 处理构建产物。
+
+### 日常更新（最常用）
+
+改完代码后三条命令即可，剩下的全部自动完成：
+
+```powershell
+git add -A
+git commit -m "你的改动说明"
+git push origin main
+```
+
+推送后 GitHub Actions 会自动构建并发布，约 1～2 分钟后线上生效。查看进度：仓库 **Actions** 标签页。如果只想重新发布而不改代码，用 **Actions → Deploy to GitHub Pages → Run workflow**。
+
+> 自定义域名的配置存在 **仓库 Settings** 里，不在代码里，因此上面的日常推送**不会**影响域名，不需要重复配置。
+
+### 自定义域名 hi-lanmili.com
+
+域名注册于阿里云（万网），DNS 由阿里云云解析托管（`dns17.hichina.com` / `dns18.hichina.com`）。
+
+在阿里云控制台 → 云解析 DNS → `hi-lanmili.com` → 添加如下记录（裸域名 `@` 为主域名，`www` 由 GitHub 自动跳转到主域名）：
+
+| 记录类型 | 主机记录 | 记录值 | 说明 |
+| --- | --- | --- | --- |
+| `A` | `@` | `185.199.108.153`<br>`185.199.109.153`<br>`185.199.110.153`<br>`185.199.111.153` | GitHub Pages 官方 IPv4，四条都要加 |
+| `AAAA` | `@` | `2606:50c0:8000::153`<br>`2606:50c0:8001::153`<br>`2606:50c0:8002::153`<br>`2606:50c0:8003::153` | 可选，IPv6 |
+| `CNAME` | `www` | `laura-rice.github.io` | 不要带仓库名，也不要以 `/` 结尾 |
+
+> 不要使用通配符记录（如 `*.hi-lanmili.com`），会带来域名劫持风险。
+
+**切换顺序很重要**：必须先让 DNS 解析生效，再到 GitHub 绑定域名。反过来做的话，`laura-rice.github.io` 会立刻跳转到还解析不通的 `hi-lanmili.com`，导致站点暂时打不开。
+
+DNS 生效后执行（`gh` CLI 已登录时）：
+
+```powershell
+gh api -X PUT repos/Laura-rice/Laura-rice.github.io/pages `
+  -f cname=hi-lanmili.com -f build_type=workflow `
+  -f "source[branch]=main" -f "source[path]=/"
+```
+
+然后确认：
+
+```powershell
+gh api repos/Laura-rice/Laura-rice.github.io/pages --jq '{cname,https_enforced,status}'
+```
+
+`cname` 显示 `hi-lanmili.com` 即为成功，随后在 **Settings → Pages** 勾选 **Enforce HTTPS**（证书签发可能需要几分钟到几小时，未就绪时该选项不可点）。
+
+`public/CNAME` 内容与本域名保持一致，作为兜底保险；但对当前的自定义 Actions 工作流发布方式，GitHub 官方说明是**该文件会被忽略、也不需要**，真正生效的是仓库 Settings 中的配置。
 
 ### Vercel（可选）
 
