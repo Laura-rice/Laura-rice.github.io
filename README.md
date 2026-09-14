@@ -15,7 +15,40 @@ npm run dev
 
 ## 部署
 
-项目使用 `vercel.json` 将所有页面地址回退到 `index.html`，确保 React Router 内页刷新可用。使用 Vercel 发布时，构建命令为 `npm run build`，输出目录为 `dist`。
+### GitHub Pages（当前使用）
+
+- 线上预览：<https://laura-rice.github.io/>
+- 仓库地址：<https://github.com/Laura-rice/Laura-rice.github.io>
+- 部署方式：推送到 `main` 分支即自动构建并发布，无需手动操作
+- 手动触发：仓库 **Actions** → `Deploy to GitHub Pages` → **Run workflow**
+- 流水线定义：`.github/workflows/deploy-pages.yml`
+
+流水线要点：
+
+- 构建前把环境变量 `VITE_DIFY_CHATBOT_TOKEN` 从仓库 Secret 注入，因此线上 AI 助手气泡可用；该值需在 **Settings → Secrets and variables → Actions** 中维护。
+- 构建后用 `index.html` 生成 `404.html`。GitHub Pages 对未知路径返回 404，靠这个回退文件 React Router 的子路由（如 `/about`）才能直接访问和刷新。
+- `public/.nojekyll` 阻止 Pages 用 Jekyll 处理构建产物。
+
+### Vercel（可选）
+
+项目保留了 `vercel.json`，将所有页面地址回退到 `index.html`。使用 Vercel 发布时，构建命令为 `npm run build`，输出目录为 `dist`。
+
+### 推送失败排查
+
+本机 `git push` 若报 `Recv failure: Connection was reset`，是访问 `github.com` 被网络重置所致。本仓库已配置仓库级代理指向本机 Clash（`http://127.0.0.1:7897`），需保持代理程序开启。
+
+```powershell
+# 查看当前代理配置
+git config --local --get http.proxy
+
+# 代理端口变化时更新（示例端口 7897）
+git config --local http.proxy http://127.0.0.1:7897
+git config --local https.proxy http://127.0.0.1:7897
+
+# 不再需要代理时移除
+git config --local --unset http.proxy
+git config --local --unset https.proxy
+```
 
 ## 功能列表
 
